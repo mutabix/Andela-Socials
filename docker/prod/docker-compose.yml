@@ -17,10 +17,6 @@ services:
       - ../../.env
     environment:
       - VIRTUAL_HOST=localhost
-    # ports:
-    #   - "8000:8000"
-    expose:
-      - "80"
     depends_on:
       - database
     volumes:
