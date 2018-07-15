@@ -24,7 +24,9 @@ module.exports = {
       'process': {
         'env': {
           'G_SUITE_DOMAIN': JSON.stringify(process.env.G_SUITE_DOMAIN),
-          'CLIENT_ID': JSON.stringify(process.env.CLIENT_ID)
+          'CLIENT_ID': JSON.stringify(process.env.CLIENT_ID),
+          'ACCESS_TOKEN': JSON.stringify(process.env.REACT_APP_ACCESS_TOKEN),
+          'API_URI': JSON.stringify(process.env.REACT_APP_API_URI)
         }
       }
     }),
