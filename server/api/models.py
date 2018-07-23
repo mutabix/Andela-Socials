@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
 from .slack import get_slack_name
+from .utils.backgroundTaskWorker import BackgroundTaskWorker
 
 
 class BaseInfo(models.Model):
@@ -51,11 +52,15 @@ class UserProxy(User):
 
         """It helps to create a new user
 
-        :param user_data: A dictionary containing user data ( like  first_name, email, username)
+        :param user_data: A dictionary containing user data (
+            like  first_name, email, username)
         :return:
         """
-        user = UserProxy.objects.create(email=user_data['email'], username=user_data['username'],
-                                        first_name=user_data['first_name'], last_name=user_data['last_name'])
+        user = UserProxy.objects.create(
+            email=user_data['email'],
+            username=user_data['username'],
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'])
         return user
 
     @classmethod
@@ -63,7 +68,8 @@ class UserProxy(User):
 
         """It fetches a user by it's username
 
-        :param user_data: it contains user data (username is required to fetch the user)
+        :param user_data: it contains user data (
+            username is required to fetch the user)
         :return: it returns an existing user if it exist
         """
 
@@ -78,11 +84,12 @@ class AndelaUserProfile(models.Model):
     """
 
     google_id = models.CharField(max_length=60, unique=True)
-    user = models.OneToOneField(User, related_name='base_user', on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, related_name='base_user', on_delete=models.CASCADE)
     user_picture = models.TextField()
     slack_name = models.CharField(max_length=80, blank=True)
 
-    def check_diff(self, idinfo):
+    async def check_diff_and_update(self, idinfo):
         """Check for differences between request/idinfo and model data.
                     Args:
                         idinfo: data passed in from post method.
@@ -93,8 +100,8 @@ class AndelaUserProfile(models.Model):
         }
 
         for field in data:
-          if getattr(self, field) != data[field] and data[field] != '':
-            setattr(self, field, data[field])
+            if getattr(self, field) != data[field] and data[field] != '':
+                setattr(self, field, data[field])
         self.save()
 
     def __str__(self):
@@ -105,17 +112,23 @@ class AndelaUserProfile(models.Model):
 
         """It helps to create a new user profile
 
-        :param user_data: A dictionary containing user data ( required elements are  email, picture)
+        :param user_data: A dictionary containing user data (
+            required elements are  email, picture)
         :param user_id: An Existing User ID
         :return: It newly created user_profile data
         """
-        user_profile = AndelaUserProfile.objects.create(slack_name=get_slack_name({"email": user_data["email"]}),
-                                                        user_id=user_id, google_id=user_data['id'],
-                                                        user_picture=user_data['picture'])
+        user_profile = AndelaUserProfile.objects.create(
+            slack_name=get_slack_name({"email": user_data["email"]}),
+            user_id=user_id, google_id=user_data['id'],
+            user_picture=user_data['picture'])
+        # It runs background user profile update.
+        BackgroundTaskWorker.start_work(
+            user_profile.check_diff_and_update,
+            (user_data,))
         return user_profile
 
     @classmethod
-    def get_user_profile(cls, user_data):
+    def get_and_update_user_profile(cls, user_data):
         """It fetches user profile
 
         :param user_data: it contains andela user google id
@@ -123,10 +136,16 @@ class AndelaUserProfile(models.Model):
         """
 
         user_profile = AndelaUserProfile.objects.get(google_id=user_data['id'])
+
+        if user_profile:
+            # It runs background user profile update.
+            BackgroundTaskWorker.start_work(user_profile.check_diff_and_update,
+                                            (user_data,))
         return user_profile
 
 
-User.profile = property(lambda u: AndelaUserProfile.objects.get_or_create(user=u)[0])
+User.profile = property(
+    lambda u: AndelaUserProfile.objects.get_or_create(user=u)[0])
 
 
 def create_user_profile(sender, instance, created, **kwargs):
@@ -149,7 +168,8 @@ class Category(BaseInfo):
 
     name = models.CharField(max_length=100)
     featured_image = models.URLField()
-    description = models.TextField(max_length=280, default="For people who want to be happy.")
+    description = models.TextField(
+        max_length=280, default="For people who want to be happy.")
 
     class Meta:
         """Define ordering below."""
@@ -175,7 +195,8 @@ class Event(BaseInfo):
     date = models.CharField(default='September 10, 2017', max_length=200)
     time = models.CharField(default='01:00pm WAT', max_length=200)
     creator = models.ForeignKey(AndelaUserProfile, on_delete=models.CASCADE)
-    social_event = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="events")
+    social_event = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="events")
     featured_image = models.URLField()
     active = models.BooleanField(default=1)
 
@@ -206,7 +227,8 @@ class Interest(BaseInfo):
         unique_together = ('follower', 'follower_category')
 
     def __str__(self):
-        return "@{} is interested in category {}" .format(self.follower.slack_name, self.follower_category.name)
+        return "@{} is interested in category {}" .format(
+            self.follower.slack_name, self.follower_category.name)
 
 
 class Attend(BaseInfo):
@@ -220,5 +242,5 @@ class Attend(BaseInfo):
         unique_together = ('user', 'event')
 
     def __str__(self):
-        return "@{} is attending event {}" .format(self.user.slack_name, self.event.title)
-
+        return "@{} is attending event {}" .format(
+            self.user.slack_name, self.event.title)
