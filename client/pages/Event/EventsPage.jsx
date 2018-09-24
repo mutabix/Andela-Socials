@@ -38,8 +38,8 @@ class EventsPage extends React.Component {
  * @returns {null}
  */
   componentDidMount() {
-    const { eventStartDate } = this.state;
-    this.getEvents({ startDate: eventStartDate });
+    // const { eventStartDate } = this.state;
+    this.getEvents({ startDate: '' });
     this.getCategories({
       first: 20, last: 20,
     });
