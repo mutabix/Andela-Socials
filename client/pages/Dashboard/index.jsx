@@ -87,7 +87,7 @@ class Dashboard extends Component {
     if (nextProps.categoryList !== prevState.categoryList) {
       temporaryState.categoryList = nextProps.categoryList;
     }
-    if (Object.keys(temporaryState).length) {
+    if (Object.keys(temporaryState).length > 0) {
       return temporaryState;
     }
     return null;
