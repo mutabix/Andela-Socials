@@ -13,6 +13,10 @@ const EVENT_GQL = (id = '') => ({
         venue
         featuredImage
         timezone
+        creator {
+          id
+          googleId
+        }        
         socialEvent {
           name
         }

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import dateFns from 'date-fns';
 import TimezonePicker from 'react-timezone';
+import moment from 'moment-timezone';
 
 import IncrementalSelect from '../common/IncrementalSelect';
 import TimePicker from '../common/Form/TimePicker';
@@ -52,6 +53,34 @@ class EventForm extends Component {
     timezone: '',
     timezoneIsValid: true,
   };
+
+  componentDidMount() {
+    const { formMode, eventData } = this.props;
+    if (formMode === 'update') {
+      const eventEndDate = moment(eventData.endDate);
+      const eventStartDate = moment(eventData.startDate);
+      this.setState({
+        timezone: eventData.timezone,
+        formData: {
+          description: eventData.description,
+          end: {
+            hour: eventEndDate.format('HH'),
+            minute: eventEndDate.format('mm'),
+            date: eventEndDate.format('YYYY-MM-DD'),
+          },
+          featuredImage: '',
+          start: {
+            hour: eventStartDate.format('HH'),
+            minute: eventStartDate.format('mm'),
+            date: eventStartDate.format('YYYY-MM-DD'),
+          },
+          title: eventData.title,
+          venue: eventData.venue,
+          selectedCategory: eventData.socialEvent.name,
+        },
+      });
+    }
+  }
 
   componentDidUpdate(prevProps) {
     const { imageUploaded } = this.props;
@@ -191,12 +220,18 @@ class EventForm extends Component {
     });
 
     if (isValid) {
+      const { uploadImage } = this.props;
       if (formMode === 'create') {
-        const { uploadImage } = this.props;
         // Upload event feature image and ensure it's uploaded
         uploadImage({ featuredImage: formData.featuredImage });
       } else if (formMode === 'update') {
+        const { eventData } = this.props;
         // CALL Update endpoint
+        if (formData.featuredImage !== eventData.featuredImage) {
+          uploadImage({ featuredImage: formData.featuredImage });
+        } else {
+
+        }
       }
     }
   };
@@ -270,12 +305,11 @@ class EventForm extends Component {
       categories,
     } = this.props;
     const {
-      formData: {
-        title, description, venue, featuredImage,
-      },
+      formData: { title, description, venue, featuredImage, selectedCategory }
     } = this.state;
     const categoryClass = categoryIsValid ? 'category-label' : 'category-label category-error';
     const timezoneClass = timezoneIsValid ? 'category-label' : 'category-label category-error';
+    const categoryTitle = selectedCategory || 'Select Category';
     return (
       <form
         id={formId}
@@ -287,7 +321,7 @@ class EventForm extends Component {
         {this.renderField('text', 'text', 'description', 'Description', formData, errors.description, description)}
         <span className={categoryClass}>Category</span>
         <CustomDropDown
-          title="Select Category"
+          title= {categoryTitle}
           list={categories}
           onSelected={this.handleCategory}
         />
@@ -343,6 +377,7 @@ EventForm.propTypes = {
   formId: PropTypes.string.isRequired,
   dismiss: PropTypes.func.isRequired,
   categories: PropTypes.arrayOf(PropTypes.object).isRequired,
+  eventData: PropTypes.arrayOf(PropTypes.shape({})),
   formData: PropTypes.shape({
     title: PropTypes.string,
     description: PropTypes.string,

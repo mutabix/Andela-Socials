@@ -10,6 +10,7 @@ import NotFound from '../../components/common/NotFound';
 // stylesheet
 import '../../assets/pages/_event_details-page.scss';
 
+import { ModalContextCreator } from '../../components/Modals/ModalContext';
 /**
  * @description Currently contains an event details page layout
  *
@@ -32,18 +33,38 @@ class EventDetailsPage extends React.Component {
   topSection = () => {
     const {
       event: {
-        title, startDate, endDate, venue, timezone, socialEvent,
+        title, startDate, endDate, venue, timezone, socialEvent, creator: { googleId },
+        description, featuredImage,
       },
+      activeUser: { id },
     } = this.props;
+    const eventData = {
+      title,
+      startDate,
+      endDate,
+      venue,
+      timezone,
+      socialEvent,
+      description,
+      featuredImage,
+    };
+    const creator = id === googleId;
     return (
       <div className="event-details__top">
         <div className="event-details__section">
           <div className="event-details__event_title">{title}</div>
           <div className="event-details__social_event">{socialEvent.name}</div>
-          <button type="submit" className="event-details__rsvp_button">
-            {' '}
-            RSVP &#10004;
-          </button>
+          {creator ?
+            <div>
+            {this.renderCreateEventButton(eventData)}
+            </div>
+            :
+            <button type="submit" className="event-details__rsvp_button">
+              {' '}
+              RSVP &#10004;
+            </button>
+          }
+
         </div>
         <div className="event-details__section">
           <div className="event-details__location_time event-details__section">
@@ -103,6 +124,37 @@ class EventDetailsPage extends React.Component {
     );
   };
 
+  renderCreateEventButton = eventData => (
+    <ModalContextCreator.Consumer>
+      {
+        ({
+          activeModal,
+          openModal,
+        }) => {
+          const { categories } = this.props;
+          if (activeModal) return null;
+          return (
+            <button type="button"
+              onClick={() => openModal(
+                'UPDATE_EVENT', {
+                  modalHeadline: 'Update event',
+                  formMode: 'update',
+                  formId: 'event-form',
+                  eventData,
+                  categories,
+                  createEvent: () => '',
+                  uploadImage: () => '',
+                }
+              )}
+              className="event-details__edit">
+              {' '}
+              &#9998;
+            </button>);
+        }
+      }
+    </ModalContextCreator.Consumer>
+  );  
+
   render() {
     const { event } = this.props;
     if (!Object.keys(event).length) {
@@ -129,6 +181,7 @@ EventDetailsPage.propTypes = {
     featuredImage: PropTypes.string,
     socialEvent: PropTypes.shape({ name: PropTypes.string }),
     attendSet: PropTypes.shape({ edges: PropTypes.arrayOf(PropTypes.shape({})) }),
+    categories: PropTypes.arrayOf(PropTypes.shape({})),
   }),
   activeUser: PropTypes.shape({ id: PropTypes.string }),
 };

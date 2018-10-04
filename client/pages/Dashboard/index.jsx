@@ -195,7 +195,7 @@ class Dashboard extends Component {
           />
           <Route
             path="/events/:eventId"
-            render={props => <EventDetailsPage {...props} activeUser={activeUser} />}
+            render={props => <EventDetailsPage {...props} activeUser={activeUser} categories={categories} />}
           />
           <Route path="/invite/:inviteHash" component={Invite} />
           <Route path="/events" render={() => <EventsPage />} />
