@@ -18,6 +18,15 @@ import { ModalContextCreator } from '../../components/Modals/ModalContext';
  * @extends {React.Component}
  */
 class EventDetailsPage extends React.Component {
+  constructor(props) {
+    super(props);
+    const { events } = this.props;
+    this.state = {
+      events,
+      updated: false,
+    };
+  }
+
   /**
    * React Lifecycle hook
    *
@@ -25,13 +34,23 @@ class EventDetailsPage extends React.Component {
    * @returns {null}
    */
   componentDidMount() {
-    const { match: { params: { eventId } } } = this.props;
-    const { getEventAction } = this.props;
-    getEventAction(eventId);
+    this.loadEvent();
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.events.status && (nextProps.events !== prevState.events && prevState.updated === false)) {
+      return { updated: true };
+    }
+
+    if (prevState.updated) {
+      return { updated: false };
+    }
+    return null;
   }
 
   topSection = () => {
     const {
+      event,
       event: {
         title, startDate, endDate, venue, timezone, socialEvent, creator: { googleId },
         description, featuredImage,
@@ -39,6 +58,7 @@ class EventDetailsPage extends React.Component {
       activeUser: { id },
     } = this.props;
     const eventData = {
+      id: event.id,
       title,
       startDate,
       endDate,
@@ -124,6 +144,12 @@ class EventDetailsPage extends React.Component {
     );
   };
 
+  loadEvent() {
+    const { match: { params: { eventId } } } = this.props;
+    const { getEventAction } = this.props;
+    getEventAction(eventId);
+  }
+
   renderCreateEventButton = eventData => (
     <ModalContextCreator.Consumer>
       {
@@ -131,7 +157,7 @@ class EventDetailsPage extends React.Component {
           activeModal,
           openModal,
         }) => {
-          const { categories } = this.props;
+          const { categories, uploadImage, updateEvent } = this.props;
           if (activeModal) return null;
           return (
             <button type="button"
@@ -142,8 +168,8 @@ class EventDetailsPage extends React.Component {
                   formId: 'event-form',
                   eventData,
                   categories,
-                  createEvent: () => '',
-                  uploadImage: () => '',
+                  createEvent: updateEvent,
+                  uploadImage,
                 }
               )}
               className="event-details__edit">
@@ -156,6 +182,10 @@ class EventDetailsPage extends React.Component {
   );  
 
   render() {
+    const { updated } = this.state;
+    if (updated) {
+      this.loadEvent();
+    }
     const { event } = this.props;
     if (!Object.keys(event).length) {
       return <NotFound />;
@@ -191,7 +221,12 @@ EventDetailsPage.defaultProps = {
   activeUser: { id: '' },
 };
 const mapDispatchToProps = dispatch => bindActionCreators({ getEventAction: getEvent }, dispatch);
-const mapStateToProps = ({ event }) => ({ event });
+const mapStateToProps = (state) => {
+  return {
+    event: state.event,
+    events: state.events,
+  };
+};
 export default connect(
   mapStateToProps,
   mapDispatchToProps

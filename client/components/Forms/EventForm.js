@@ -61,6 +61,7 @@ class EventForm extends Component {
       const eventStartDate = moment(eventData.startDate);
       this.setState({
         timezone: eventData.timezone,
+        category: eventData.socialEvent.id,
         formData: {
           description: eventData.description,
           end: {
@@ -68,7 +69,7 @@ class EventForm extends Component {
             minute: eventEndDate.format('mm'),
             date: eventEndDate.format('YYYY-MM-DD'),
           },
-          featuredImage: '',
+          featuredImage: eventData.featuredImage,
           start: {
             hour: eventStartDate.format('HH'),
             minute: eventStartDate.format('mm'),
@@ -76,7 +77,7 @@ class EventForm extends Component {
           },
           title: eventData.title,
           venue: eventData.venue,
-          selectedCategory: eventData.socialEvent.name,
+          category: eventData.socialEvent.name,
         },
       });
     }
@@ -131,6 +132,7 @@ class EventForm extends Component {
         if (type === 'file') {
           return (<UploadField
             {...this.commonProps(id, type, label, formData, error)}
+            imageUrl={value}
             onChange={this.handleFormInput} />);
         }
         return (<InputField
@@ -220,17 +222,33 @@ class EventForm extends Component {
     });
 
     if (isValid) {
-      const { uploadImage } = this.props;
+      const { uploadImage, createEvent, eventData: { id } } = this.props;
       if (formMode === 'create') {
         // Upload event feature image and ensure it's uploaded
         uploadImage({ featuredImage: formData.featuredImage });
       } else if (formMode === 'update') {
-        const { eventData } = this.props;
-        // CALL Update endpoint
+        const { eventData, dismiss } = this.props;
+        const {
+          category,
+          timezone,
+        } = this.state;
+        const startDate = this.formatDate(formData.start);
+        const endDate = this.formatDate(formData.end);
         if (formData.featuredImage !== eventData.featuredImage) {
           uploadImage({ featuredImage: formData.featuredImage });
         } else {
-
+          createEvent({
+            eventId: id,
+            title: formData.title,
+            description: formData.description,
+            venue: formData.venue,
+            featuredImage: formData.featuredImage,
+            startDate: dateFns.format(startDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ'),
+            endDate: dateFns.format(endDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ'),
+            categoryId: category,
+            timezone,
+          });
+          dismiss();
         }
       }
     }
@@ -305,11 +323,11 @@ class EventForm extends Component {
       categories,
     } = this.props;
     const {
-      formData: { title, description, venue, featuredImage, selectedCategory }
+      formData: { title, description, venue, featuredImage, category }
     } = this.state;
     const categoryClass = categoryIsValid ? 'category-label' : 'category-label category-error';
     const timezoneClass = timezoneIsValid ? 'category-label' : 'category-label category-error';
-    const categoryTitle = selectedCategory || 'Select Category';
+    const categoryTitle = category || 'Select Category';
     return (
       <form
         id={formId}
@@ -377,7 +395,7 @@ EventForm.propTypes = {
   formId: PropTypes.string.isRequired,
   dismiss: PropTypes.func.isRequired,
   categories: PropTypes.arrayOf(PropTypes.object).isRequired,
-  eventData: PropTypes.arrayOf(PropTypes.shape({})),
+  eventData: PropTypes.shape({}),
   formData: PropTypes.shape({
     title: PropTypes.string,
     description: PropTypes.string,

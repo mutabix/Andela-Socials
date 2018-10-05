@@ -18,6 +18,7 @@ const EVENT_GQL = (id = '') => ({
           googleId
         }        
         socialEvent {
+          id
           name
         }
         attendSet {
