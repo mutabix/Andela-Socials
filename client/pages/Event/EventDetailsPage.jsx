@@ -74,12 +74,11 @@ class EventDetailsPage extends React.Component {
         <div className="event-details__section">
           <div className="event-details__event_title">{title}</div>
           <div className="event-details__social_event">{socialEvent.name}</div>
-          {creator ?
-            <div>
+          {creator
+            ? <div>
             {this.renderCreateEventButton(eventData)}
             </div>
-            :
-            <button type="submit" className="event-details__rsvp_button">
+            : <button type="submit" className="event-details__rsvp_button">
               {' '}
               RSVP &#10004;
             </button>
@@ -200,6 +199,8 @@ class EventDetailsPage extends React.Component {
 }
 EventDetailsPage.propTypes = {
   match: PropTypes.shape({ params: PropTypes.shape({ eventId: PropTypes.string }) }),
+  getEventAction: PropTypes.func,
+  events: PropTypes.shape({}),
   event: PropTypes.shape({
     id: PropTypes.string,
     active: PropTypes.bool,
@@ -218,7 +219,9 @@ EventDetailsPage.propTypes = {
 EventDetailsPage.defaultProps = {
   match: {},
   event: {},
+  events: [],
   activeUser: { id: '' },
+  getEventAction: () => null,
 };
 const mapDispatchToProps = dispatch => bindActionCreators({ getEventAction: getEvent }, dispatch);
 const mapStateToProps = (state) => {

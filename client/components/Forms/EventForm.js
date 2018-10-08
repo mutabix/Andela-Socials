@@ -222,12 +222,12 @@ class EventForm extends Component {
     });
 
     if (isValid) {
-      const { uploadImage, createEvent, eventData: { id } } = this.props;
+      const { uploadImage, createEvent } = this.props;
       if (formMode === 'create') {
         // Upload event feature image and ensure it's uploaded
         uploadImage({ featuredImage: formData.featuredImage });
       } else if (formMode === 'update') {
-        const { eventData, dismiss } = this.props;
+        const { eventData, dismiss, eventData: { id } } = this.props;
         const {
           category,
           timezone,
@@ -323,7 +323,7 @@ class EventForm extends Component {
       categories,
     } = this.props;
     const {
-      formData: { title, description, venue, featuredImage, category }
+      formData: { title, description, venue, featuredImage, category, }
     } = this.state;
     const categoryClass = categoryIsValid ? 'category-label' : 'category-label category-error';
     const timezoneClass = timezoneIsValid ? 'category-label' : 'category-label category-error';

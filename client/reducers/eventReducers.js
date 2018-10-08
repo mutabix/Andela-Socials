@@ -44,7 +44,10 @@ export const events = (state = initialState.events, action) => {
         }
         return item;
       });
-      return { events: updated, status: 'updated' };
+      return {
+        events: updated,
+        status: 'updated',
+      };
     }
 
     case DEACTIVATE_EVENT: {
