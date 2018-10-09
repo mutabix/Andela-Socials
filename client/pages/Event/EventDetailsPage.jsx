@@ -200,7 +200,10 @@ class EventDetailsPage extends React.Component {
 EventDetailsPage.propTypes = {
   match: PropTypes.shape({ params: PropTypes.shape({ eventId: PropTypes.string }) }),
   getEventAction: PropTypes.func,
-  events: PropTypes.shape({}),
+  events: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.object),
+    PropTypes.shape({}),
+  ]),
   event: PropTypes.shape({
     id: PropTypes.string,
     active: PropTypes.bool,
@@ -218,7 +221,7 @@ EventDetailsPage.propTypes = {
 };
 EventDetailsPage.defaultProps = {
   match: {},
-  event: {},
+  event: [],
   events: [],
   activeUser: { id: '' },
   getEventAction: () => null,
