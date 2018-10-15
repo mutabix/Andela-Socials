@@ -13,10 +13,10 @@ import External from '../../components/External';
 import EventsPage from '../Event/EventsPage';
 import EventDetailsPage from '../Event/EventDetailsPage';
 import Invite from '../Invite';
-import ModalContextProvider, { ModalContextCreator } from '../../components/Modals/ModalContext';
+import ModalContextProvider from '../../components/Modals/ModalContext';
 import Modal from '../../components/Modals/ModalContainer';
 import LoadComponent from '../../utils/loadComponent';
-import { createEvent, updateEvent } from '../../actions/graphql/eventGQLActions';
+import { updateEvent } from '../../actions/graphql/eventGQLActions';
 import uploadImage from '../../actions/graphql/uploadGQLActions';
 import { getCategoryList } from '../../actions/graphql/categoryGQLActions';
 
@@ -108,40 +108,6 @@ class Dashboard extends Component {
     }
   };
 
-  renderCreateEventButton = categories => (
-    <ModalContextCreator.Consumer>
-      {
-        ({
-          activeModal,
-          openModal,
-        }) => {
-          // TODO: This should be removed, duplicate naming
-          const {
-            createEvent, uploadImage,
-          } = this.props;
-          if (activeModal) return null;
-          return (
-            <button
-              type="button"
-              onClick={() => openModal('CREATE_EVENT', {
-                modalHeadline: 'create event',
-                formMode: 'create',
-                formId: 'event-form',
-                categories,
-                createEvent,
-                uploadImage,
-                updateEvent: () => '',
-              })}
-              className="create-event-btn"
-            >
-              <span className="create-event-btn__icon">+</span>
-            </button>
-          );
-        }
-      }
-    </ModalContextCreator.Consumer>
-  );
-
   /**
    * Renders Dashboard component
    *
@@ -203,7 +169,6 @@ class Dashboard extends Component {
           <Route path="/dashboard" render={() => <EventsPage />} />
           <Route path="*" component={NotFound} />
         </Switch>
-        {this.renderCreateEventButton(categories)}
         <Modal {...this.props} />
       </ModalContextProvider>
     );
@@ -213,8 +178,6 @@ class Dashboard extends Component {
 Dashboard.propTypes = {
   location: PropTypes.shape({ pathname: PropTypes.string.isRequired }).isRequired,
   loadActiveUser: PropTypes.func.isRequired,
-  createEvent: PropTypes.func.isRequired,
-  uploadImage: PropTypes.func.isRequired,
   getCategoryList: PropTypes.func.isRequired,
 };
 
@@ -222,7 +185,6 @@ const mapDispatchToProps = dispatch => bindActionCreators(
   {
     loadActiveUser,
     displayLoginErrorMessage,
-    createEvent,
     updateEvent,
     uploadImage,
     getCategoryList,
@@ -234,7 +196,6 @@ const mapDispatchToProps = dispatch => bindActionCreators(
 const mapStateToProps = state => ({
   activeUser: state.activeUser,
   socialClubs: state.socialClubs,
-  imageUploaded: state.uploadImage,
   categoryList: state.socialClubs.socialClubs || [],
   oauth: state.oauth,
   oauthCounter: 1,
