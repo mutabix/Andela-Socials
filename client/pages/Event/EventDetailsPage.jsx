@@ -191,12 +191,10 @@ class EventDetailsPage extends React.Component {
       return <NotFound />;
     }
     return (
-      <React.Fragment>
-        <div className="event-details">
-          {this.topSection()}
-          {this.middleSection()}
-        </div>
-      </React.Fragment>
+      <div className="event-details">
+        {this.topSection()}
+        {this.middleSection()}
+      </div>
     );
   }
 }
