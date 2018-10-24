@@ -29,6 +29,7 @@ class EventsPage extends React.Component {
       lastEventItemCursor: '',
     };
     this.getFilteredEvents = this.getFilteredEvents.bind(this);
+    this.btnRef = React.createRef();
   }
 
   /**
@@ -45,18 +46,55 @@ class EventsPage extends React.Component {
     });
   }
 
-  componentWillReceiveProps(nextProps) {
+  /**
+   *
+   *
+   * @param {*} prevProps
+   * @param {*} prevState
+   * @param {*} snapshot
+   * 
+   * @memberof EventsPage
+   */
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (this.btnRef.current !== null) {
+      if (snapshot !== null) {
+        const btn = this.btnRef.current;
+        btn.scrollIntoView();
+      }
+    }
+  }
+
+  /**
+   *
+   *
+   * @param {*} prevProps
+   * @param {*} prevState
+   * @returns
+   * @memberof EventsPage
+   */
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    const { events } = this.props;
+    if (this.btnRef.current !== null) {
+      if (prevState.eventList.length < events.length) {
+        const button = this.btnRef.current;
+        return button.scrollHeight - button.scrollTop;
+      }
+    }
+    return null;
+  }
+
+  static getDerivedStateFromProps(props, state) {
     const {
       events, socialClubs,
-    } = nextProps;
+    } = props;
 
     const eventLength = events.length;
     const lastEventItemCursor = eventLength ? events[eventLength - 1].cursor : '';
-    this.setState({
+    return {
       eventList: events,
       categoryList: socialClubs.socialClubs,
       lastEventItemCursor,
-    });
+    };
   }
 
   getFilteredEvents(filterDate, filterLocation, filterCategory) {
@@ -135,6 +173,7 @@ class EventsPage extends React.Component {
       category: selectedCategory,
       after: lastEventItemCursor,
     });
+    this.btnRef.current.scrollIntoView();
   }
 
   /**
@@ -154,7 +193,7 @@ class EventsPage extends React.Component {
   }
 
   render() {
-    const { categoryList } = this.state;
+    const { categoryList, eventList } = this.state;
     const catList = Array.isArray(categoryList) ? categoryList.map(item => ({
       id: item.node.id,
       title: item.node.name,
@@ -169,9 +208,11 @@ class EventsPage extends React.Component {
         </div>
         {this.renderEventGallery()}
         <div className="event__footer">
-          <button onClick={this.loadMoreEvents} type="button" className="btn-blue event__load-more-button">
+          { eventList.length >= 9
+            && <button ref={this.btnRef} onClick={this.loadMoreEvents}
+              type="button" className="btn-blue event__load-more-button" id="load-more-btn">
             Load more
-          </button>
+          </button>}
         </div>
       </div>
     );
