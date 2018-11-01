@@ -201,7 +201,7 @@ class EventDetailsPage extends React.Component {
               onClick={() => openModal(
                 'DELETE_EVENT', {
                   modalHeadline: 'Delete event',
-                  formText: `Are you sure you want to delete Event '${title}' ?`,
+                  formText: `Are you sure you want to delete the Event '${title}' ?`,
                   eventId: id,
                   formId: 'delete-event-form',
                 }
